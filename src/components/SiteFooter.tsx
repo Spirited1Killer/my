@@ -1,0 +1,18 @@
+import Link from "next/link";
+
+export function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <p className="site-footer__brand">SJL</p>
+        <p className="site-footer__copy">
+          © {new Date().getFullYear()} · 写一点，留一点
+        </p>
+        <div className="site-footer__links">
+          <Link href="/posts">文章</Link>
+          <Link href="/about">关于</Link>
+        </div>
+      </div>
+    </footer>
+  );
+}

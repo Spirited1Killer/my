@@ -4,7 +4,7 @@ import { getAllPosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
   title: "文章",
-  description: "SJL 的全部文章。",
+  description: "无敌杀手的全部文章。",
 };
 
 export default function PostsPage() {

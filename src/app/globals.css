@@ -78,11 +78,12 @@ img {
 
 .site-logo {
   font-family: var(--font-display);
-  font-size: 1.55rem;
+  font-size: 1.25rem;
   font-weight: 560;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: var(--pine-deep);
   transition: opacity 0.25s ease;
+  white-space: nowrap;
 }
 
 .site-logo:hover {
@@ -316,10 +317,10 @@ img {
 
 .hero__brand {
   font-family: var(--font-display);
-  font-size: clamp(4.5rem, 16vw, 9.5rem);
+  font-size: clamp(2.75rem, 10vw, 6.5rem);
   font-weight: 560;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
+  line-height: 1;
+  letter-spacing: -0.02em;
   margin: 0 0 1.25rem;
   animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

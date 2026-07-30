@@ -16,8 +16,8 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link href="/" className="site-logo" aria-label="SJL 首页">
-          SJL
+        <Link href="/" className="site-logo" aria-label="无敌杀手 首页">
+          无敌杀手
         </Link>
         <div className="site-header__right">
           <nav className="site-nav" aria-label="主导航">

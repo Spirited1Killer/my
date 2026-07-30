@@ -31,10 +31,10 @@ const notoSerifSC = Noto_Serif_SC({
 
 export const metadata: Metadata = {
   title: {
-    default: "SJL — 个人博客",
-    template: "%s · SJL",
+    default: "无敌杀手 — 个人博客",
+    template: "%s · 无敌杀手",
   },
-  description: "SJL 的个人博客：写技术、写观察、写一点慢慢留下的想法。",
+  description: "无敌杀手的个人博客：写技术、写观察、写一点慢慢留下的想法。",
 };
 
 export default function RootLayout({

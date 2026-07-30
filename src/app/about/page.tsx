@@ -4,18 +4,18 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "关于",
-  description: "关于 SJL：写作者、想法与这个小站。",
+  description: "关于无敌杀手：写作者、想法与这个小站。",
 };
 
 export default function AboutPage() {
   return (
     <section className="section">
       <p className="section__eyebrow">About</p>
-      <h1 className="section__title">关于 SJL</h1>
+      <h1 className="section__title">关于无敌杀手</h1>
       <div className="about-layout" style={{ marginTop: "2.5rem" }}>
         <div className="about-copy">
           <p>
-            你好，我是这个站点的作者。SJL
+            你好，我是这个站点的作者。无敌杀手
             是一间很小的个人博客：用来放下技术笔记、阅读感想，以及那些还不够成熟、但值得被写下来的想法。
           </p>
           <p>

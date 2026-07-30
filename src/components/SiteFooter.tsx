@@ -4,7 +4,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
-        <p className="site-footer__brand">SJL</p>
+        <p className="site-footer__brand">无敌杀手</p>
         <p className="site-footer__copy">
           © {new Date().getFullYear()} · 写一点，留一点
         </p>

@@ -3,28 +3,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const AUDIO_SRC = "/audio/zhongguoren-neng-fei.mp3";
+const UNLOCK_EVENTS = ["mousemove", "wheel"] as const;
 
 export function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
+  const [awaitingMove, setAwaitingMove] = useState(false);
 
   const play = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return;
     try {
       await audio.play();
-      setPlaying(true);
     } catch {
-      setPlaying(false);
+      // 状态交给 audio 事件同步，这里不 setState
     }
   }, []);
 
   const pause = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.pause();
-    setPlaying(false);
+    audioRef.current?.pause();
   }, []);
 
   const toggle = useCallback(() => {
@@ -38,29 +36,49 @@ export function AudioPlayer() {
     audio.preload = "auto";
     audioRef.current = audio;
 
-    const onPlaying = () => setPlaying(true);
+    let cleaned = false;
+
+    const onPlaying = () => {
+      setPlaying(true);
+      setAwaitingMove(false);
+    };
     const onPause = () => setPlaying(false);
     const onCanPlay = () => setReady(true);
+
+    const removeUnlockListeners = (unlock: () => void) => {
+      UNLOCK_EVENTS.forEach((event) => {
+        window.removeEventListener(event, unlock);
+      });
+    };
+
+    const unlock = () => {
+      void audio.play().then(
+        () => removeUnlockListeners(unlock),
+        () => {},
+      );
+    };
+
+    const addUnlockListeners = () => {
+      if (cleaned) return;
+      setAwaitingMove(true);
+      UNLOCK_EVENTS.forEach((event) => {
+        window.addEventListener(event, unlock, { passive: true });
+      });
+    };
 
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("canplay", onCanPlay);
 
+    // 只调浏览器 API；setState 放在 Promise 回调 / 媒体事件里
     void audio.play().then(
-      () => setPlaying(true),
-      () => {
-        // 浏览器拦截自动播放时，等用户首次交互再播
-        const resume = () => {
-          void audio.play().then(() => setPlaying(true)).catch(() => {});
-          window.removeEventListener("pointerdown", resume);
-          window.removeEventListener("keydown", resume);
-        };
-        window.addEventListener("pointerdown", resume, { once: true });
-        window.addEventListener("keydown", resume, { once: true });
-      },
+      () => {},
+      () => addUnlockListeners(),
     );
 
     return () => {
+      cleaned = true;
+      removeUnlockListeners(unlock);
       audio.pause();
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("pause", onPause);
@@ -68,6 +86,14 @@ export function AudioPlayer() {
       audioRef.current = null;
     };
   }, []);
+
+  const status = playing
+    ? "循环播放中"
+    : awaitingMove
+      ? "滑动鼠标开始"
+      : ready
+        ? "已暂停"
+        : "准备中";
 
   return (
     <div className="audio-player" aria-label="背景音乐播放器">
@@ -78,9 +104,7 @@ export function AudioPlayer() {
       </div>
       <div className="audio-player__meta">
         <p className="audio-player__title">中国人能飞</p>
-        <p className="audio-player__status">
-          {playing ? "循环播放中" : ready ? "已暂停" : "准备中"}
-        </p>
+        <p className="audio-player__status">{status}</p>
       </div>
       <button
         type="button"

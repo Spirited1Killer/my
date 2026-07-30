@@ -1,4 +1,4 @@
-# SJL 个人博客
+# 无敌杀手个人博客
 
 基于 **Next.js** 的个人博客站点：Markdown 写作、App Router 路由、注重阅读体验的界面。
 

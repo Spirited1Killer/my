@@ -8,7 +8,7 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero" aria-label="SJL 首页">
+      <section className="hero" aria-label="无敌杀手首页">
         <div className="hero__media">
           <Image
             src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=2000&q=80"
@@ -20,7 +20,7 @@ export default function HomePage() {
           <div className="hero__veil" />
         </div>
         <div className="hero__content">
-          <p className="hero__brand">SJL</p>
+          <p className="hero__brand">无敌杀手</p>
           <h1 className="hero__headline">一间留给文字的小窗</h1>
           <p className="hero__support">
             写技术、写观察、写一点点值得留下的想法。慢慢读，也慢慢写。

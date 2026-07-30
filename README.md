@@ -44,3 +44,12 @@ cover: https://images.unsplash.com/photo-xxx?w=1600&q=80
 - `npm run build` — 生产构建
 - `npm run start` — 启动生产服务
 - `npm run lint` — 代码检查
+- `npm run preview` — 用 Workers 运行时本地预览
+- `npm run deploy` — 构建并部署到 Cloudflare Workers
+
+## Cloudflare 部署
+
+Workers Builds 建议填写：
+
+- **Build command**: `npx opennextjs-cloudflare build`
+- **Deploy command**: `npx opennextjs-cloudflare deploy`

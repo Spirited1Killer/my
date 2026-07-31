@@ -12,7 +12,7 @@ export default function AboutPage() {
     <section className="section">
       <p className="section__eyebrow">About</p>
       <h1 className="section__title">关于无敌杀手</h1>
-      <div className="about-layout" style={{ marginTop: "2.5rem" }}>
+      <div className="about-layout" style={{ marginTop: "2.5rem",gridTemplateColumns: "1fr 1.8fr" }}>
         <div className="about-copy">
           <p>
             你好，我是这个站点的作者。无敌杀手
@@ -33,10 +33,10 @@ export default function AboutPage() {
         </div>
         <div className="about-portrait">
           <Image
-            src="https://images.unsplash.com/photo-1481627834876-b7833e8f5040?w=1200&q=80"
-            alt="窗边的书桌与书本"
+            src="/images/xiongduojishao.png"
+            alt="无敌杀手"
             fill
-            sizes="(max-width: 860px) 100vw, 40vw"
+            sizes="(max-width: 860px) 40vw, 20vw"
           />
         </div>
       </div>

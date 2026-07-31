@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
@@ -17,7 +18,8 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="site-header__inner">
         <Link href="/" className="site-logo" aria-label="无敌杀手 首页">
-          无敌杀手
+          <Image src="/images/avatar.jpg" alt="无敌杀手" width={32} height={32} />
+          <span style={{ marginLeft: "10px" }}>无敌杀手</span>
         </Link>
         <div className="site-header__right">
           <nav className="site-nav" aria-label="主导航">

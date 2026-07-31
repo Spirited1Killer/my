@@ -6,7 +6,7 @@ export function SiteFooter() {
       <div className="site-footer__inner">
         <p className="site-footer__brand">无敌杀手</p>
         <p className="site-footer__copy">
-          © {new Date().getFullYear()} · 写一点，留一点
+          © {new Date().getFullYear()} · 无敌杀手
         </p>
         <div className="site-footer__links">
           <Link href="/posts">文章</Link>

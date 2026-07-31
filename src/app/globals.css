@@ -77,6 +77,8 @@ img {
 }
 
 .site-logo {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 560;
@@ -84,6 +86,11 @@ img {
   color: var(--pine-deep);
   transition: opacity 0.25s ease;
   white-space: nowrap;
+}
+
+.site-logo img {
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .site-logo:hover {

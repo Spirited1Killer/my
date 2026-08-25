@@ -926,7 +926,7 @@ img {
   min-height: 560px;
   border-radius: 0.4rem;
   overflow: hidden;
-  background: #e8dfc8;
+  background: #e8e2c4;
   border: 1px solid var(--line);
   touch-action: none;
 }

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { animateCalf, createCalf } from "@/lib/game/createCalf";
-import { createInkMaterials, createWorld } from "@/lib/game/createWorld";
+import { createInkMaterials, createWorld, scrollLaneDashes, WORLD_COLORS } from "@/lib/game/createWorld";
 import { LANES } from "@/lib/game/types";
 import {
   createDrop,
@@ -30,6 +30,7 @@ export class NiulaiGame2Engine {
   private camera: THREE.PerspectiveCamera;
   private clock = new THREE.Clock();
   private sky: THREE.Mesh;
+  private world: THREE.Group;
 
   private herd = new THREE.Group();
   private calves: THREE.Group[] = [];
@@ -73,7 +74,7 @@ export class NiulaiGame2Engine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.setClearColor(0xe8dfc8);
+    this.renderer.setClearColor(WORLD_COLORS.skyBottom);
 
     this.camera = new THREE.PerspectiveCamera(
       55,
@@ -85,13 +86,14 @@ export class NiulaiGame2Engine {
     this.camera.lookAt(0, 1.2, -8);
 
     const mats = createInkMaterials();
-    this.scene.add(createWorld(mats));
+    this.world = createWorld(mats);
+    this.scene.add(this.world);
 
     const skyMat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: {
-        topColor: { value: new THREE.Color(0xdfe8df) },
-        bottomColor: { value: new THREE.Color(0xe8dfc8) },
+        topColor: { value: new THREE.Color(WORLD_COLORS.skyTop) },
+        bottomColor: { value: new THREE.Color(WORLD_COLORS.skyBottom) },
         offset: { value: 4 },
         exponent: { value: 0.7 },
       },
@@ -146,7 +148,7 @@ export class NiulaiGame2Engine {
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("resize", this.onResize);
 
-    this.scene.fog = new THREE.Fog(0xe8dfc8, 20, 75);
+    this.scene.fog = new THREE.Fog(WORLD_COLORS.fog, 28, 85);
     this.emitHud();
     this.loop();
   }
@@ -312,6 +314,7 @@ export class NiulaiGame2Engine {
     this.distance += this.runSpeed * dt;
 
     this.herd.position.x += (this.targetX - this.herd.position.x) * Math.min(1, dt * 14);
+    scrollLaneDashes(this.world, this.runSpeed, dt);
 
     for (const c of this.calves) animateCalf(c, this.clock.elapsedTime, true);
 

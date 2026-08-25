@@ -5,6 +5,8 @@ import {
   createInkMaterials,
   createObstacle,
   createWorld,
+  scrollLaneDashes,
+  WORLD_COLORS,
   type InkMaterials,
 } from "@/lib/game/createWorld";
 import {
@@ -79,7 +81,7 @@ export class NiulaiEngine {
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setClearColor(0xe8dfc8);
+    this.renderer.setClearColor(WORLD_COLORS.skyBottom);
 
     this.camera = new THREE.PerspectiveCamera(
       55,
@@ -99,8 +101,8 @@ export class NiulaiEngine {
     const skyMat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: {
-        topColor: { value: new THREE.Color(0xdfe8df) },
-        bottomColor: { value: new THREE.Color(0xe8dfc8) },
+        topColor: { value: new THREE.Color(WORLD_COLORS.skyTop) },
+        bottomColor: { value: new THREE.Color(WORLD_COLORS.skyBottom) },
         offset: { value: 4 },
         exponent: { value: 0.7 },
       },
@@ -138,6 +140,8 @@ export class NiulaiEngine {
     sun.shadow.camera.top = 20;
     sun.shadow.camera.bottom = -10;
     this.scene.add(sun);
+
+    this.scene.fog = new THREE.Fog(WORLD_COLORS.fog, 28, 85);
 
     this.calf = createCalf();
     this.calf.position.set(0, 0, 0);
@@ -368,10 +372,12 @@ export class NiulaiEngine {
     this.calf.position.y = this.jumpY;
 
     animateCalf(this.calf, this.clock.elapsedTime, true);
+    scrollLaneDashes(this.world, this.speed, dt);
 
-    // 地面纹理滚动感：移动世界装饰
     const birds = this.world.userData.birds as THREE.Group | undefined;
-    if (birds) birds.rotation.y = Math.sin(this.elapsed * 0.2) * 0.05;
+    if (birds) {
+      birds.position.x = Math.sin(this.elapsed * 0.15) * 0.8;
+    }
 
     this.spawnTimer -= dt;
     if (this.spawnTimer <= 0) {
@@ -508,14 +514,17 @@ export class NiulaiEngine {
   }
 
   private updateAtmosphere() {
-    // 随距离雾色/天空向青墨色 lerp
-    const t = Math.min(1, this.distance / 1200);
-    const top = new THREE.Color(0xdfe8df).lerp(new THREE.Color(0x6f8580), t);
-    const bottom = new THREE.Color(0xe8dfc8).lerp(new THREE.Color(0xb7c4b0), t);
+    // 远距离略微压暗，保持截图那种淡黄雾感
+    const t = Math.min(1, this.distance / 1600);
+    const top = new THREE.Color(WORLD_COLORS.skyTop).lerp(new THREE.Color(0xd5d8c8), t * 0.45);
+    const bottom = new THREE.Color(WORLD_COLORS.skyBottom).lerp(
+      new THREE.Color(WORLD_COLORS.fog),
+      t * 0.35,
+    );
     const mat = this.sky.material as THREE.ShaderMaterial;
     mat.uniforms.topColor.value.copy(top);
     mat.uniforms.bottomColor.value.copy(bottom);
     this.renderer.setClearColor(bottom.getHex());
-    this.scene.fog = new THREE.Fog(bottom.getHex(), 18, 70 - t * 10);
+    this.scene.fog = new THREE.Fog(bottom.getHex(), 30, 88 - t * 8);
   }
 }

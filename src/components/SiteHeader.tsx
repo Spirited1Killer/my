@@ -8,7 +8,8 @@ import { AudioPlayer } from "@/components/AudioPlayer";
 const links = [
   { href: "/", label: "首页" },
   { href: "/posts", label: "文章" },
-  { href: "/game", label: "小游戏" },
+  { href: "/game", label: "游戏一" },
+  { href: "/game2", label: "游戏二" },
   { href: "/about", label: "关于" },
 ];
 

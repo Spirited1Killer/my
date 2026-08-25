@@ -798,6 +798,34 @@ img {
   padding-bottom: 5rem;
 }
 
+.home-game__list {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 860px) {
+  .home-game__list {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
+.home-game__card h3 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  margin: 0 0 0.65rem;
+  letter-spacing: -0.015em;
+}
+
+.home-game__card p {
+  margin: 0 0 1.1rem;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  line-height: 1.75;
+  max-width: 32rem;
+}
+
 .home-game__frame {
   margin-top: 2rem;
   display: grid;
@@ -879,6 +907,14 @@ img {
   white-space: nowrap;
 }
 
+.niulai-page__links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .niulai-page__back:hover {
   opacity: 0.75;
 }
@@ -934,6 +970,15 @@ img {
   font-size: 1rem;
   color: #1c2420;
   font-weight: 560;
+}
+
+.niulai-hud__item--boss {
+  border-color: color-mix(in oklab, #8b2e2e 45%, transparent);
+  background: color-mix(in oklab, #f3e0d8 90%, transparent);
+}
+
+.niulai-hud__item--boss strong {
+  color: #8b2e2e;
 }
 
 .niulai-hud__pause {

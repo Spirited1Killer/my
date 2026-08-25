@@ -16,9 +16,14 @@ export default function GamePage() {
           <p className="section__eyebrow">Mini Game</p>
           <h1 className="niulai-page__heading">牛来·梦境奔跑</h1>
         </div>
-        <Link href="/" className="niulai-page__back">
-          ← 返回博客
-        </Link>
+        <div className="niulai-page__links">
+          <Link href="/game2" className="niulai-page__back">
+            游戏二
+          </Link>
+          <Link href="/" className="niulai-page__back">
+            ← 返回博客
+          </Link>
+        </div>
       </div>
       <NiulaiGame />
     </section>

@@ -52,21 +52,22 @@ export default function HomePage() {
 
       <section className="section home-game">
         <p className="section__eyebrow">Play</p>
-        <h2 className="section__title">牛来·梦境奔跑</h2>
-        <div className="home-game__frame">
-          <div className="home-game__copy">
-            <p>
-              致敬水墨动画《牛来》。化身初生小牛，在宣纸梦境里拾金羽、避墨狼，跑完梦醒前的最后一程。
-            </p>
-            <p>三车道跑酷，速度渐增，最高分本地保存。桌面与手机都能玩。</p>
+        <h2 className="section__title">牛来小游戏</h2>
+        <div className="home-game__list">
+          <article className="home-game__card">
+            <h3>游戏一 · 梦境奔跑</h3>
+            <p>三车道跑酷，拾金羽、躲障碍，跑完梦醒前最后一程。</p>
             <Link href="/game" className="btn btn--pine">
               开始入梦
             </Link>
-          </div>
-          <div className="home-game__visual" aria-hidden>
-            <span className="home-game__visual-mark">牛来</span>
-            <p className="home-game__visual-sub">宣纸 · 墨色 · 无尽奔跑</p>
-          </div>
+          </article>
+          <article className="home-game__card">
+            <h3>游戏二 · 妈妈出击</h3>
+            <p>A/D 移动，自动吐出妈妈攻击墨狼；掉落可加牛数与攻速。</p>
+            <Link href="/game2" className="btn btn--pine">
+              开始出击
+            </Link>
+          </article>
         </div>
       </section>
     </>

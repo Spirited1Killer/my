@@ -29,8 +29,8 @@ export default function HomePage() {
             <Link href="/posts" className="btn btn--solid">
               阅读文章
             </Link>
-            <Link href="/about" className="btn btn--ghost">
-              关于我
+            <Link href="/game" className="btn btn--ghost">
+              玩小游戏
             </Link>
           </div>
         </div>
@@ -48,6 +48,26 @@ export default function HomePage() {
           </Link>
         </div>
         <PostList posts={latest} />
+      </section>
+
+      <section className="section home-game">
+        <p className="section__eyebrow">Play</p>
+        <h2 className="section__title">牛来·梦境奔跑</h2>
+        <div className="home-game__frame">
+          <div className="home-game__copy">
+            <p>
+              致敬水墨动画《牛来》。化身初生小牛，在宣纸梦境里拾金羽、避墨狼，跑完梦醒前的最后一程。
+            </p>
+            <p>三车道跑酷，速度渐增，最高分本地保存。桌面与手机都能玩。</p>
+            <Link href="/game" className="btn btn--pine">
+              开始入梦
+            </Link>
+          </div>
+          <div className="home-game__visual" aria-hidden>
+            <span className="home-game__visual-mark">牛来</span>
+            <p className="home-game__visual-sub">宣纸 · 墨色 · 无尽奔跑</p>
+          </div>
+        </div>
       </section>
     </>
   );

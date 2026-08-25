@@ -791,3 +791,318 @@ img {
     padding-bottom: 3.5rem;
   }
 }
+
+/* ——— Home game teaser ——— */
+.home-game {
+  padding-top: 1rem;
+  padding-bottom: 5rem;
+}
+
+.home-game__frame {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (min-width: 860px) {
+  .home-game__frame {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 2.5rem;
+  }
+}
+
+.home-game__copy p {
+  margin: 0 0 1rem;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 1.08rem;
+  line-height: 1.8;
+  max-width: 36rem;
+}
+
+.home-game__visual {
+  position: relative;
+  min-height: 260px;
+  border-radius: 0.35rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 30%, #f7f1e3 0%, transparent 45%),
+    linear-gradient(160deg, #dfe6d8 0%, #c5d0bc 45%, #8a9a8e 100%);
+  display: grid;
+  place-items: center;
+  animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.home-game__visual-mark {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 3.8rem);
+  color: color-mix(in oklab, #1a1c1b 78%, transparent);
+  letter-spacing: 0.08em;
+}
+
+.home-game__visual-sub {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 1.2rem;
+  margin: 0;
+  font-size: 0.85rem;
+  color: color-mix(in oklab, #1a1c1b 55%, transparent);
+}
+
+/* ——— Niulai game ——— */
+.niulai-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+.niulai-page__bar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.niulai-page__heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.niulai-page__back {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--pine);
+  white-space: nowrap;
+}
+
+.niulai-page__back:hover {
+  opacity: 0.75;
+}
+
+.niulai-game {
+  position: relative;
+  width: 100%;
+  height: min(88vh, 920px);
+  min-height: 560px;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  background: #e8dfc8;
+  border: 1px solid var(--line);
+  touch-action: none;
+}
+
+.niulai-game__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.niulai-hud {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  right: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.niulai-hud__item {
+  background: color-mix(in oklab, #f4efe3 88%, transparent);
+  border: 1px solid color-mix(in oklab, #1a1c1b 12%, transparent);
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.3rem;
+  display: grid;
+  gap: 0.05rem;
+  min-width: 4.2rem;
+}
+
+.niulai-hud__item span {
+  font-size: 0.68rem;
+  color: #6a736c;
+}
+
+.niulai-hud__item strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: #1c2420;
+  font-weight: 560;
+}
+
+.niulai-hud__pause {
+  pointer-events: auto;
+  margin-left: auto;
+  border: 1px solid color-mix(in oklab, #1a1c1b 18%, transparent);
+  background: color-mix(in oklab, #f4efe3 92%, transparent);
+  color: #1c2420;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+.niulai-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: color-mix(in oklab, #ebe3cf 72%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.niulai-panel--dim {
+  background: color-mix(in oklab, #1a1c1b 28%, transparent);
+}
+
+.niulai-panel--dim .niulai-panel__title,
+.niulai-panel--dim .niulai-panel__lead {
+  color: #f4efe3;
+}
+
+.niulai-panel__eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4d5a52;
+}
+
+.niulai-panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #1a1c1b;
+  max-width: 12ch;
+}
+
+.niulai-panel__title--sm {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  max-width: 16ch;
+}
+
+.niulai-panel__lead {
+  margin: 0;
+  max-width: 34rem;
+  color: #4a5851;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.niulai-panel__tips {
+  margin: 0.2rem 0 0;
+  padding-left: 1.1rem;
+  color: #5a675f;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.niulai-panel__record {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display);
+  color: #1f5c48;
+  font-size: 1.05rem;
+}
+
+.niulai-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.niulai-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 1.2rem;
+  border: none;
+  border-radius: 0.35rem;
+  background: #1f5c48;
+  color: #f4f7f4;
+  font-weight: 650;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.niulai-btn:hover {
+  background: #164536;
+  transform: translateY(-1px);
+}
+
+.niulai-btn--ghost {
+  background: transparent;
+  color: #1f5c48;
+  border: 1px solid color-mix(in oklab, #1f5c48 45%, transparent);
+}
+
+.niulai-panel--dim .niulai-btn--ghost {
+  color: #f4efe3;
+  border-color: color-mix(in oklab, #f4efe3 45%, transparent);
+}
+
+.niulai-ink {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, #1a1c1b 88%, transparent) 0%,
+    color-mix(in oklab, #1a1c1b 55%, transparent) 28%,
+    transparent 62%
+  );
+  transform: scale(0.2);
+}
+
+.niulai-ink.is-active {
+  animation: ink-burst 0.85s ease-out both;
+}
+
+@keyframes ink-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  35% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@media (max-width: 640px) {
+  .niulai-game {
+    min-height: 480px;
+    height: 78vh;
+  }
+
+  .niulai-panel {
+    padding: 1.25rem;
+    align-content: end;
+  }
+
+  .niulai-hud__item:nth-child(4) {
+    display: none;
+  }
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Figtree, Fraunces, Source_Serif_4, Noto_Serif_SC } from "next/font/google";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
@@ -48,6 +49,7 @@ export default function RootLayout({
       className={`${figtree.variable} ${fraunces.variable} ${sourceSerif.variable} ${notoSerifSC.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <GoogleAnalytics />
         <SiteHeader />
         <main className="page-shell">{children}</main>
         <SiteFooter />

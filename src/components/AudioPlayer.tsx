@@ -2,13 +2,65 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const AUDIO_SRC = "/audio/zhongguoren-neng-fei.mp3";
-const STORAGE_KEY = "bgm-playing";
-const UNLOCK_EVENTS = ["mousemove", "wheel"] as const;
+type Track = {
+  id: string;
+  title: string;
+  src: string;
+};
+
+const TRACKS: Track[] = [
+  { id: "xiatou", title: "下头", src: "/audio/xiatou.mp3" },
+  { id: "sad-squaad", title: "伤心游击队", src: "/audio/sad-squaad.mp3" },
+  { id: "qianqianwanwan", title: "千千万万", src: "/audio/qianqianwanwan.mp3" },
+  { id: "neverseemeagain", title: "Never See Me Again", src: "/audio/neverseemeagain.mp3" },
+  { id: "yikou", title: "一口", src: "/audio/yikou.mp3" },
+  { id: "zhongguoren-neng-fei", title: "中国人能飞", src: "/audio/zhongguoren-neng-fei.mp3" },
+  { id: "alasong", title: "阿拉松", src: "/audio/alasong.mp3" },
+  { id: "t-e5bca0e696b9", title: "唉", src: "/audio/t-e5bca0e696b9.mp3" },
+  { id: "pt-6", title: "唉 (pt.6)", src: "/audio/pt-6.mp3" },
+  { id: "pt-7", title: "唉 (pt.7)", src: "/audio/pt-7.mp3" },
+  { id: "t-e6b395e88081", title: "城西舞厅", src: "/audio/t-e6b395e88081.mp3" },
+  { id: "t-e5bca0e696b9-3", title: "尴尬的", src: "/audio/t-e5bca0e696b9-3.mp3" },
+  { id: "t-e4b881e4b896", title: "蝴蝶山", src: "/audio/t-e4b881e4b896.mp3" },
+  { id: "t-e5bca0e696b9-4", title: "回避依恋", src: "/audio/t-e5bca0e696b9-4.mp3" },
+  { id: "t-e5bca0e696b9-6", title: "简单的", src: "/audio/t-e5bca0e696b9-6.mp3" },
+  { id: "t-e999b6e59686", title: "今天没回家", src: "/audio/t-e999b6e59686.mp3" },
+  { id: "tour-live", title: "就算我放棄了世界", src: "/audio/tour-live.mp3" },
+  { id: "t-e5bca0e99c87", title: "亏欠", src: "/audio/t-e5bca0e99c87.mp3" },
+  { id: "t-e5bca0e696b9-2", title: "离歌", src: "/audio/t-e5bca0e696b9-2.mp3" },
+  { id: "t-e9babbe59bad", title: "泸沽湖", src: "/audio/t-e9babbe59bad.mp3" },
+  { id: "t-e999b6e59686-2", title: "似曾相识", src: "/audio/t-e999b6e59686-2.mp3" },
+  { id: "t-e999b6e59686-3", title: "讨厌红楼梦", src: "/audio/t-e999b6e59686-3.mp3" },
+  { id: "t-e9babbe59bad-2", title: "现在现在", src: "/audio/t-e9babbe59bad-2.mp3" },
+  { id: "t-e5bca0e696b9-5", title: "潇洒无意义", src: "/audio/t-e5bca0e696b9-5.mp3" },
+  { id: "t-e6b395e88081-2", title: "邮差", src: "/audio/t-e6b395e88081-2.mp3" },
+  { id: "t-44697a7a7920", title: "雨过后的风景", src: "/audio/t-44697a7a7920.mp3" },
+  { id: "t-e78e8be4bba5", title: "周旋", src: "/audio/t-e78e8be4bba5.mp3" },
+  { id: "all-i-have", title: "All I Have", src: "/audio/all-i-have.mp3" },
+  { id: "bossa-no-se", title: "Bossa No Sé", src: "/audio/bossa-no-se.mp3" },
+  { id: "charlene", title: "Charlene", src: "/audio/charlene.mp3" },
+  { id: "come-back-to-me", title: "Come Back To Me", src: "/audio/come-back-to-me.mp3" },
+  { id: "heartbreak-anniversary", title: "Heartbreak Anniversary", src: "/audio/heartbreak-anniversary.mp3" },
+  { id: "i-think-i-love-you-again", title: "I Think I Love You Again", src: "/audio/i-think-i-love-you-again.mp3" },
+  { id: "outro", title: "Outro", src: "/audio/outro.mp3" },
+  { id: "thank-you", title: "Thank You", src: "/audio/thank-you.mp3" },
+  { id: "this-is-america", title: "This Is America", src: "/audio/this-is-america.mp3" },
+  { id: "toosie-slide", title: "Toosie Slide", src: "/audio/toosie-slide.mp3" },
+  { id: "wassuh", title: "Wassuh", src: "/audio/wassuh.mp3" },
+  { id: "t-e5bca0e4b880", title: "เนื้อคู่ฉันอยู่ไหน", src: "/audio/t-e5bca0e4b880.mp3" },
+];
+
+const PLAYING_KEY = "bgm-playing";
+const TRACK_KEY = "bgm-track";
+const LOOP_KEY = "bgm-loop";
+const LIST_VISIBLE = 10;
+const UNLOCK_EVENTS = ["mousemove", "pointerdown"] as const;
+
+type LoopMode = "list" | "one";
 
 function readWantPlay(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== "0";
+    return localStorage.getItem(PLAYING_KEY) !== "0";
   } catch {
     return true;
   }
@@ -16,30 +68,124 @@ function readWantPlay(): boolean {
 
 function writeWantPlay(value: boolean) {
   try {
-    localStorage.setItem(STORAGE_KEY, value ? "1" : "0");
+    localStorage.setItem(PLAYING_KEY, value ? "1" : "0");
   } catch {
-    // ignore quota / private mode
+    // ignore
   }
+}
+
+function readTrackIndex(): number {
+  try {
+    const raw = localStorage.getItem(TRACK_KEY);
+    const n = raw == null ? 0 : Number(raw);
+    if (!Number.isFinite(n) || n < 0 || n >= TRACKS.length) return 0;
+    return n;
+  } catch {
+    return 0;
+  }
+}
+
+function writeTrackIndex(index: number) {
+  try {
+    localStorage.setItem(TRACK_KEY, String(index));
+  } catch {
+    // ignore
+  }
+}
+
+function readLoopMode(): LoopMode {
+  try {
+    const raw = localStorage.getItem(LOOP_KEY);
+    if (raw === "list") return "list";
+    return "one";
+  } catch {
+    return "one";
+  }
+}
+
+function writeLoopMode(mode: LoopMode) {
+  try {
+    localStorage.setItem(LOOP_KEY, mode);
+  } catch {
+    // ignore
+  }
+}
+
+function wrapIndex(index: number) {
+  const len = TRACKS.length;
+  return ((index % len) + len) % len;
 }
 
 export function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wantPlayRef = useRef(false);
+  const [index, setIndex] = useState(() => readTrackIndex());
+  const indexRef = useRef(index);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
   const [awaitingMove, setAwaitingMove] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
+  const [loopMode, setLoopMode] = useState<LoopMode>(() => readLoopMode());
+  const loopModeRef = useRef(loopMode);
+
+  const current = TRACKS[index] ?? TRACKS[0];
+
+  const applyLoopMode = useCallback((mode: LoopMode) => {
+    loopModeRef.current = mode;
+    setLoopMode(mode);
+    writeLoopMode(mode);
+    const audio = audioRef.current;
+    if (audio) audio.loop = mode === "one";
+  }, []);
+
+  const toggleLoopMode = useCallback(() => {
+    applyLoopMode(loopModeRef.current === "list" ? "one" : "list");
+  }, [applyLoopMode]);
+
+  const loadAndMaybePlay = useCallback(async (nextIndex: number, autoPlay: boolean) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const track = TRACKS[nextIndex];
+    if (!track) return;
+
+    indexRef.current = nextIndex;
+    setIndex(nextIndex);
+    writeTrackIndex(nextIndex);
+    setReady(false);
+
+    const sameSrc =
+      audio.src.endsWith(track.src) || audio.getAttribute("src") === track.src;
+    if (!sameSrc) {
+      audio.src = track.src;
+      audio.load();
+    }
+    audio.loop = loopModeRef.current === "one";
+
+    if (autoPlay) {
+      wantPlayRef.current = true;
+      writeWantPlay(true);
+      try {
+        await audio.play();
+      } catch {
+        // 交给 unlock / 媒体事件
+      }
+    }
+  }, []);
 
   const play = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return;
+    wantPlayRef.current = true;
     writeWantPlay(true);
     try {
       await audio.play();
     } catch {
-      // 状态交给 audio 事件同步，这里不 setState
+      // ignore
     }
   }, []);
 
   const pause = useCallback(() => {
+    wantPlayRef.current = false;
     writeWantPlay(false);
     audioRef.current?.pause();
   }, []);
@@ -49,14 +195,39 @@ export function AudioPlayer() {
     else void play();
   }, [pause, play, playing]);
 
+  const playPrev = useCallback(() => {
+    const next = wrapIndex(indexRef.current - 1);
+    void loadAndMaybePlay(next, wantPlayRef.current || playing);
+  }, [loadAndMaybePlay, playing]);
+
+  const playNext = useCallback(() => {
+    const next = wrapIndex(indexRef.current + 1);
+    void loadAndMaybePlay(next, wantPlayRef.current || playing);
+  }, [loadAndMaybePlay, playing]);
+
+  const selectTrack = useCallback(
+    (i: number) => {
+      if (i === indexRef.current) {
+        if (!playing) void play();
+        return;
+      }
+      void loadAndMaybePlay(i, true);
+    },
+    [loadAndMaybePlay, play, playing],
+  );
+
   useEffect(() => {
-    const audio = new Audio(AUDIO_SRC);
-    audio.loop = true;
+    const initial = readTrackIndex();
+    indexRef.current = initial;
+    wantPlayRef.current = readWantPlay();
+    loopModeRef.current = readLoopMode();
+
+    const audio = new Audio(TRACKS[initial].src);
+    audio.loop = loopModeRef.current === "one";
     audio.preload = "auto";
     audioRef.current = audio;
 
     let cleaned = false;
-    const wantPlay = readWantPlay();
 
     const onPlaying = () => {
       setPlaying(true);
@@ -64,6 +235,15 @@ export function AudioPlayer() {
     };
     const onPause = () => setPlaying(false);
     const onCanPlay = () => setReady(true);
+    const onEnded = () => {
+      // 单曲循环走 audio.loop，一般不会触发 ended
+      if (loopModeRef.current === "one") {
+        void audio.play().catch(() => {});
+        return;
+      }
+      const next = wrapIndex(indexRef.current + 1);
+      void loadAndMaybePlay(next, true);
+    };
 
     const removeUnlockListeners = (unlock: () => void) => {
       UNLOCK_EVENTS.forEach((event) => {
@@ -72,6 +252,10 @@ export function AudioPlayer() {
     };
 
     const unlock = () => {
+      if (!wantPlayRef.current) {
+        removeUnlockListeners(unlock);
+        return;
+      }
       void audio.play().then(
         () => removeUnlockListeners(unlock),
         () => {},
@@ -89,9 +273,9 @@ export function AudioPlayer() {
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("canplay", onCanPlay);
+    audio.addEventListener("ended", onEnded);
 
-    // 用户曾暂停则保持静音，刷新不再自动播放
-    if (wantPlay) {
+    if (wantPlayRef.current) {
       void audio.play().then(
         () => {},
         () => addUnlockListeners(),
@@ -105,46 +289,144 @@ export function AudioPlayer() {
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("canplay", onCanPlay);
+      audio.removeEventListener("ended", onEnded);
       audioRef.current = null;
     };
-  }, []);
+  }, [loadAndMaybePlay]);
 
   const status = playing
-    ? "循环播放中"
+    ? loopMode === "one"
+      ? "单曲循环"
+      : "列表循环"
     : awaitingMove
       ? "滑动鼠标开始"
       : ready
         ? "已暂停"
         : "准备中";
 
+  const listMaxHeight = `calc(${Math.min(TRACKS.length, LIST_VISIBLE)} * 2.15rem)`;
+
   return (
-    <div className="audio-player" aria-label="背景音乐播放器">
+    <div
+      className={`audio-player${listOpen ? " is-open" : ""}`}
+      aria-label="背景音乐播放器"
+      onMouseEnter={() => setListOpen(true)}
+      onMouseLeave={() => setListOpen(false)}
+    >
       <div className={`audio-player__eq ${playing ? "is-playing" : ""}`} aria-hidden>
         <span />
         <span />
         <span />
       </div>
       <div className="audio-player__meta">
-        <p className="audio-player__title">中国人能飞</p>
+        <p className="audio-player__title">{current.title}</p>
         <p className="audio-player__status">{status}</p>
       </div>
-      <button
-        type="button"
-        className="audio-player__btn"
-        onClick={toggle}
-        aria-label={playing ? "暂停音乐" : "播放音乐"}
+      <div className="audio-player__controls">
+        <button
+          type="button"
+          className="audio-player__btn audio-player__btn--ghost"
+          onClick={playPrev}
+          aria-label="上一首"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+            <path d="M6 5h2v14H6V5zm3.5 7 8.5 6.5V5.5L9.5 12z" fill="currentColor" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="audio-player__btn"
+          onClick={toggle}
+          aria-label={playing ? "暂停音乐" : "播放音乐"}
+        >
+          {playing ? (
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+              <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
+              <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+              <path d="M8 5.5v13l11-6.5-11-6.5z" fill="currentColor" />
+            </svg>
+          )}
+        </button>
+        <button
+          type="button"
+          className="audio-player__btn audio-player__btn--ghost"
+          onClick={playNext}
+          aria-label="下一首"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+            <path d="M16 5h2v14h-2V5zM6 5.5v13L14.5 12 6 5.5z" fill="currentColor" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className={`audio-player__btn audio-player__btn--ghost${loopMode === "one" ? " is-active-mode" : ""}`}
+          onClick={toggleLoopMode}
+          aria-label={loopMode === "one" ? "切换为列表循环" : "切换为单曲循环"}
+          title={loopMode === "one" ? "单曲循环" : "列表循环"}
+        >
+          {loopMode === "one" ? (
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+              <path
+                d="M7 7h8a4 4 0 1 1 0 8H9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <path d="M7 7 4.8 9.2 7 11.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M9 15l2.2 2.2L9 19.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <text x="12" y="13.2" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor">
+                1
+              </text>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+              <path
+                d="M7 7h8a4 4 0 1 1 0 8H9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <path d="M7 7 4.8 9.2 7 11.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M9 15l2.2 2.2L9 19.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      <div
+        className="audio-player__list"
+        role="listbox"
+        aria-label="播放列表"
+        aria-hidden={!listOpen}
+        style={{ maxHeight: listMaxHeight }}
       >
-        {playing ? (
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-            <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
-            <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-            <path d="M8 5.5v13l11-6.5-11-6.5z" fill="currentColor" />
-          </svg>
-        )}
-      </button>
+        {TRACKS.map((track, i) => {
+          const active = i === index;
+          return (
+            <button
+              key={track.id}
+              type="button"
+              role="option"
+              aria-selected={active}
+              className={`audio-player__track${active ? " is-active" : ""}`}
+              onClick={() => selectTrack(i)}
+            >
+              <span className="audio-player__track-index">{i + 1}</span>
+              <span className="audio-player__track-title">{track.title}</span>
+              {active && playing ? (
+                <span className="audio-player__track-now" aria-hidden>
+                  ▶
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

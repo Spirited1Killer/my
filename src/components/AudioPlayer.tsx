@@ -205,13 +205,15 @@ export function AudioPlayer() {
 
   const onSeekChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const next = Number(e.target.value);
+    if (!Number.isFinite(next)) return;
     seekingRef.current = true;
     seekDraftRef.current = next;
     setCurrentTime(next);
+    const audio = audioRef.current;
+    if (audio) audio.currentTime = next;
   }, []);
 
-  const commitSeek = useCallback(() => {
-    if (!seekingRef.current) return;
+  const endSeek = useCallback(() => {
     seekingRef.current = false;
     const audio = audioRef.current;
     if (audio) audio.currentTime = seekDraftRef.current;
@@ -576,8 +578,9 @@ export function AudioPlayer() {
           value={Math.min(currentTime, progressMax || 0)}
           disabled={!progressMax}
           onChange={onSeekChange}
-          onPointerUp={commitSeek}
-          onKeyUp={commitSeek}
+          onPointerUp={endSeek}
+          onPointerCancel={endSeek}
+          onBlur={endSeek}
           aria-label="播放进度"
         />
         <span className="audio-player__time">{formatTime(duration)}</span>

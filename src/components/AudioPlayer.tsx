@@ -65,7 +65,6 @@ const LOOP_KEY = "bgm-loop";
 const VOLUME_KEY = "bgm-volume";
 const TIME_KEY = "bgm-time";
 const LIST_VISIBLE = 10;
-const UNLOCK_EVENTS = ["mousemove", "pointerdown"] as const;
 
 type LoopMode = "list" | "one";
 
@@ -239,9 +238,10 @@ async function applyTrackSource(
 
 function readWantPlay(): boolean {
   try {
-    return localStorage.getItem(PLAYING_KEY) !== "0";
+    // 只有用户明确点过播放才自动续播；缺省不自动播，避免点导航也把歌打开
+    return localStorage.getItem(PLAYING_KEY) === "1";
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -564,39 +564,14 @@ function AudioPlayerClient() {
       void loadAndMaybePlay(next, true);
     };
 
-    const removeUnlockListeners = (unlock: () => void) => {
-      UNLOCK_EVENTS.forEach((event) => {
-        window.removeEventListener(event, unlock);
-      });
-    };
-
-    const unlock = () => {
-      if (!wantPlayRef.current) {
-        removeUnlockListeners(unlock);
-        return;
-      }
-      void audio.play().then(
-        () => removeUnlockListeners(unlock),
-        () => {},
-      );
-    };
-
-    const addUnlockListeners = () => {
-      if (cleaned) return;
-      setAwaitingMove(true);
-      UNLOCK_EVENTS.forEach((event) => {
-        window.addEventListener(event, unlock, { passive: true });
-      });
-    };
-
+    // 仅在「本来就在播」时回前台续播；不在全局点击/划鼠时偷播
     const onVisibility = () => {
       if (document.visibilityState !== "visible") return;
       if (!wantPlayRef.current) return;
       if (!audio.paused) return;
-      void audio.play().then(
-        () => {},
-        () => addUnlockListeners(),
-      );
+      void audio.play().catch(() => {
+        setAwaitingMove(true);
+      });
     };
 
     audio.addEventListener("playing", onPlaying);
@@ -623,7 +598,6 @@ function AudioPlayerClient() {
         const saved = readSavedTime(initial);
         const ok = await applyTrackSource(audio, track.src, saved);
         if (!ok && !cleaned) {
-          // 加载失败时保持静音，避免无 Range 直链播到一半没声
           setReady(false);
           return;
         }
@@ -636,9 +610,10 @@ function AudioPlayerClient() {
         setReady(true);
         syncTime();
       } else if (wantPlayRef.current) {
+        // 尝试静默续播；失败就等用户点播放按钮，不要监听全局点击
         void audio.play().then(
           () => {},
-          () => addUnlockListeners(),
+          () => setAwaitingMove(true),
         );
       } else {
         syncTime();
@@ -650,7 +625,6 @@ function AudioPlayerClient() {
 
     return () => {
       cleaned = true;
-      removeUnlockListeners(unlock);
       document.removeEventListener("visibilitychange", onVisibility);
       writeSavedTime(indexRef.current, audio.currentTime || 0);
       audio.removeEventListener("playing", onPlaying);
@@ -681,7 +655,7 @@ function AudioPlayerClient() {
       ? "单曲循环"
       : "列表循环"
     : awaitingMove
-      ? "滑动鼠标开始"
+      ? "点击播放"
       : ready
         ? "已暂停"
         : "加载中";

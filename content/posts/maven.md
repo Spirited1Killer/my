@@ -1,3 +1,10 @@
+---
+title: Maven学习
+description: Maven 坐标、依赖管理、生命周期与常用命令笔记。
+date: 2026-08-26
+tags: [技术, Maven]
+---
+
 # Maven学习
 
 ## 一、Maven坐标

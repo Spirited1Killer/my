@@ -7,6 +7,7 @@ import {
   getAllPosts,
   getPostBySlug,
   getPostSlugs,
+  resolvePostSlug,
 } from "@/lib/posts";
 
 type PageProps = {
@@ -33,9 +34,9 @@ export async function generateMetadata({
 }
 
 export default async function PostPage({ params }: PageProps) {
-  const { slug } = await params;
-  const slugs = getPostSlugs();
-  if (!slugs.includes(slug)) notFound();
+  const { slug: rawSlug } = await params;
+  const slug = resolvePostSlug(rawSlug);
+  if (!slug) notFound();
 
   const post = await getPostBySlug(slug);
   const related = getAllPosts()

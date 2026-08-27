@@ -16,6 +16,8 @@
     serif;
   --font-ui: var(--font-figtree), "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", sans-serif;
+  --page-width: 1280px;
+  --measure: 860px;
 }
 
 @theme inline {
@@ -67,7 +69,7 @@ img {
 }
 
 .site-header__inner {
-  max-width: 1120px;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 1rem 1.5rem;
   display: flex;
@@ -241,13 +243,13 @@ img {
 }
 
 .section {
-  max-width: 1120px;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 4.5rem 1.5rem;
 }
 
 .section--narrow {
-  max-width: 720px;
+  max-width: var(--measure);
 }
 
 .section__eyebrow {
@@ -315,7 +317,7 @@ img {
 .hero__content {
   position: relative;
   z-index: 1;
-  max-width: 1120px;
+  max-width: var(--page-width);
   width: 100%;
   margin: 0 auto;
   padding: 5.5rem 1.5rem 4.5rem;
@@ -529,7 +531,7 @@ img {
 .article-hero__content {
   position: relative;
   z-index: 1;
-  max-width: 720px;
+  max-width: var(--measure);
   width: 100%;
   margin: 0 auto;
   padding: 5rem 1.5rem 2.75rem;
@@ -581,7 +583,7 @@ img {
 }
 
 .article-body {
-  max-width: 680px;
+  max-width: var(--measure);
   margin: 0 auto;
   padding: 3.25rem 1.5rem 5rem;
   font-family: var(--font-body);
@@ -622,6 +624,10 @@ img {
   text-underline-offset: 0.18em;
 }
 
+.article-body a:hover {
+  opacity: 0.8;
+}
+
 .article-body strong {
   font-weight: 650;
 }
@@ -652,6 +658,58 @@ img {
 .article-body ul,
 .article-body ol {
   padding-left: 1.3rem;
+}
+
+.article-body blockquote {
+  margin: 0 0 1.25rem;
+  padding: 0.35rem 0 0.35rem 1rem;
+  border-left: 3px solid var(--pine);
+  color: var(--ink-soft);
+}
+
+.article-body hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 2rem 0;
+}
+
+.article-body .table-wrap,
+.article-body table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  margin: 0 0 1.35rem;
+}
+
+.article-body table {
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.article-body th,
+.article-body td {
+  border: 1px solid var(--line);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 4.5rem;
+}
+
+.article-body th {
+  background: color-mix(in oklab, var(--pine) 8%, var(--mist));
+  font-family: var(--font-ui);
+  font-weight: 650;
+  color: var(--pine-deep);
+}
+
+.article-body tr:nth-child(even) td {
+  background: color-mix(in oklab, var(--mist) 65%, transparent);
+}
+
+.article-body img {
+  border-radius: 0.35rem;
+  margin: 0.5rem 0 1.25rem;
 }
 
 .article-back {
@@ -711,7 +769,7 @@ img {
 }
 
 .site-footer__inner {
-  max-width: 1120px;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 2.25rem 1.5rem 2.75rem;
   display: grid;
@@ -880,7 +938,7 @@ img {
 
 /* ——— Niulai game ——— */
 .niulai-page {
-  max-width: 1120px;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 1.5rem 1.5rem 3rem;
 }

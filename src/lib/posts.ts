@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { remark } from "remark";
+import remarkGfm from "remark-gfm";
 import html from "remark-html";
 import readingTime from "reading-time";
 
@@ -15,6 +16,8 @@ export type PostMeta = {
   tags: string[];
   cover?: string;
   readingTime: string;
+  /** 文件上传/修改时间，用于「最近写下的」排序 */
+  uploadedAt: number;
 };
 
 export type Post = PostMeta & {
@@ -42,17 +45,27 @@ function normalizeDate(value: unknown): string {
   return String(value).slice(0, 10);
 }
 
-function parseFrontmatter(slug: string, fileContents: string) {
+function dateFromMtime(mtimeMs: number): string {
+  const d = new Date(mtimeMs);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function parseFrontmatter(slug: string, fileContents: string, mtimeMs: number) {
   const { data, content } = matter(fileContents);
+  const date = normalizeDate(data.date) || dateFromMtime(mtimeMs);
   return {
     content,
     meta: {
       slug,
       title: (data.title as string) ?? slug,
       description: (data.description as string) ?? "",
-      date: normalizeDate(data.date),
+      date,
       tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
       cover: data.cover as string | undefined,
+      uploadedAt: mtimeMs,
     },
   };
 }
@@ -65,10 +78,36 @@ export function getPostSlugs(): string[] {
     .map((file) => file.replace(/\.md$/, ""));
 }
 
-export function getPostMeta(slug: string): PostMeta {
+/** 兼容 URL 编码 / Unicode 规范化，避免中文 slug 误判 404 */
+export function resolvePostSlug(raw: string): string | null {
+  let decoded = raw;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    decoded = raw;
+  }
+  const normalized = decoded.normalize("NFC");
+  const slugs = getPostSlugs();
+  return (
+    slugs.find(
+      (slug) =>
+        slug === raw ||
+        slug === decoded ||
+        slug.normalize("NFC") === normalized,
+    ) ?? null
+  );
+}
+
+function readPostFile(slug: string) {
   const fullPath = path.join(postsDirectory, `${slug}.md`);
   const fileContents = fs.readFileSync(fullPath, "utf8");
-  const { content, meta } = parseFrontmatter(slug, fileContents);
+  const stat = fs.statSync(fullPath);
+  return { fileContents, mtimeMs: stat.mtimeMs };
+}
+
+export function getPostMeta(slug: string): PostMeta {
+  const { fileContents, mtimeMs } = readPostFile(slug);
+  const { content, meta } = parseFrontmatter(slug, fileContents, mtimeMs);
   const stats = readingTime(content);
 
   return {
@@ -80,14 +119,17 @@ export function getPostMeta(slug: string): PostMeta {
 export function getAllPosts(): PostMeta[] {
   return getPostSlugs()
     .map(getPostMeta)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+    .sort((a, b) => b.uploadedAt - a.uploadedAt);
 }
 
 export async function getPostBySlug(slug: string): Promise<Post> {
-  const fullPath = path.join(postsDirectory, `${slug}.md`);
-  const fileContents = fs.readFileSync(fullPath, "utf8");
-  const { content, meta } = parseFrontmatter(slug, fileContents);
-  const processed = await remark().use(html).process(content);
+  const resolved = resolvePostSlug(slug) ?? slug;
+  const { fileContents, mtimeMs } = readPostFile(resolved);
+  const { content, meta } = parseFrontmatter(resolved, fileContents, mtimeMs);
+  const processed = await remark()
+    .use(remarkGfm)
+    .use(html, { sanitize: false })
+    .process(content);
   const stats = readingTime(content);
 
   return {

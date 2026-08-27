@@ -3,7 +3,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const AUDIO_SRC = "/audio/zhongguoren-neng-fei.mp3";
+const STORAGE_KEY = "bgm-playing";
 const UNLOCK_EVENTS = ["mousemove", "wheel"] as const;
+
+function readWantPlay(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+function writeWantPlay(value: boolean) {
+  try {
+    localStorage.setItem(STORAGE_KEY, value ? "1" : "0");
+  } catch {
+    // ignore quota / private mode
+  }
+}
 
 export function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -14,6 +31,7 @@ export function AudioPlayer() {
   const play = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return;
+    writeWantPlay(true);
     try {
       await audio.play();
     } catch {
@@ -22,6 +40,7 @@ export function AudioPlayer() {
   }, []);
 
   const pause = useCallback(() => {
+    writeWantPlay(false);
     audioRef.current?.pause();
   }, []);
 
@@ -37,6 +56,7 @@ export function AudioPlayer() {
     audioRef.current = audio;
 
     let cleaned = false;
+    const wantPlay = readWantPlay();
 
     const onPlaying = () => {
       setPlaying(true);
@@ -70,11 +90,13 @@ export function AudioPlayer() {
     audio.addEventListener("pause", onPause);
     audio.addEventListener("canplay", onCanPlay);
 
-    // 只调浏览器 API；setState 放在 Promise 回调 / 媒体事件里
-    void audio.play().then(
-      () => {},
-      () => addUnlockListeners(),
-    );
+    // 用户曾暂停则保持静音，刷新不再自动播放
+    if (wantPlay) {
+      void audio.play().then(
+        () => {},
+        () => addUnlockListeners(),
+      );
+    }
 
     return () => {
       cleaned = true;

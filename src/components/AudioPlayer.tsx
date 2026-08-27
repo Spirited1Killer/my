@@ -408,22 +408,45 @@ export function AudioPlayer() {
         {TRACKS.map((track, i) => {
           const active = i === index;
           return (
-            <button
+            <div
               key={track.id}
-              type="button"
               role="option"
               aria-selected={active}
               className={`audio-player__track${active ? " is-active" : ""}`}
-              onClick={() => selectTrack(i)}
             >
-              <span className="audio-player__track-index">{i + 1}</span>
-              <span className="audio-player__track-title">{track.title}</span>
-              {active && playing ? (
-                <span className="audio-player__track-now" aria-hidden>
-                  ▶
-                </span>
-              ) : null}
-            </button>
+              <button
+                type="button"
+                className="audio-player__track-main"
+                onClick={() => selectTrack(i)}
+              >
+                <span className="audio-player__track-index">{i + 1}</span>
+                <span className="audio-player__track-title">{track.title}</span>
+                {active && playing ? (
+                  <span className="audio-player__track-now" aria-hidden>
+                    ▶
+                  </span>
+                ) : null}
+              </button>
+              <a
+                className="audio-player__track-download"
+                href={track.src}
+                download={`${track.title}.mp3`}
+                aria-label={`下载 ${track.title}`}
+                title="下载"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                  <path
+                    d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            </div>
           );
         })}
       </div>

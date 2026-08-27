@@ -284,20 +284,14 @@ img {
 
 .audio-player__track {
   display: grid;
-  grid-template-columns: 1.4rem 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.15rem;
   width: 100%;
   height: 2.15rem;
-  padding: 0 0.55rem;
-  border: none;
+  padding: 0 0.25rem 0 0.2rem;
   border-radius: 0.45rem;
-  background: transparent;
   color: var(--ink-soft);
-  font: inherit;
-  font-size: 0.82rem;
-  text-align: left;
-  cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -310,6 +304,25 @@ img {
   background: color-mix(in oklab, var(--pine) 14%, transparent);
   color: var(--pine-deep);
   font-weight: 650;
+}
+
+.audio-player__track-main {
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  height: 100%;
+  padding: 0 0.35rem;
+  border: none;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .audio-player__track-index {
@@ -331,6 +344,23 @@ img {
 .audio-player__track-now {
   font-size: 0.65rem;
   color: var(--pine);
+}
+
+.audio-player__track-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.audio-player__track-download:hover {
+  color: var(--pine-deep);
+  background: color-mix(in oklab, var(--pine) 14%, transparent);
 }
 
 @keyframes eq-bounce {

@@ -75,6 +75,8 @@ let sharedAudio: HTMLAudioElement | null = null;
 let logicalSrc = "";
 let activeBlobUrl: string | null = null;
 let loadGeneration = 0;
+/** null=未知；线上 CDN 通常为 false（无 206） */
+let rangeSupported: boolean | null = null;
 
 function getSharedAudio(): HTMLAudioElement {
   if (!sharedAudio) {
@@ -88,23 +90,102 @@ function matchesLogicalSrc(src: string) {
   return logicalSrc === src;
 }
 
+async function probeRangeSupport(src: string): Promise<boolean> {
+  if (rangeSupported != null) return rangeSupported;
+  try {
+    const res = await fetch(src, {
+      headers: { Range: "bytes=0-1" },
+      // 只要头；部分环境仍会下一点 body，可接受
+    });
+    rangeSupported = res.status === 206;
+    // 取消读取，避免占带宽
+    try {
+      await res.body?.cancel();
+    } catch {
+      // ignore
+    }
+  } catch {
+    rangeSupported = false;
+  }
+  return rangeSupported;
+}
+
+function waitForCanPlay(
+  audio: HTMLAudioElement,
+  generation: number,
+  needThrough: boolean,
+): Promise<boolean> {
+  if (generation !== loadGeneration) return Promise.resolve(false);
+
+  const enough = needThrough
+    ? audio.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA
+    : audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
+  if (enough) return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    const eventName = needThrough ? "canplaythrough" : "canplay";
+    const finish = (ok: boolean) => {
+      audio.removeEventListener(eventName, onReady);
+      audio.removeEventListener("loadeddata", onReady);
+      audio.removeEventListener("error", onError);
+      window.clearTimeout(timer);
+      resolve(ok && generation === loadGeneration);
+    };
+    const onReady = () => finish(true);
+    const onError = () => finish(false);
+    // 大文件 canplaythrough 有时很慢，超时后只要 canplay 也继续
+    const timer = window.setTimeout(() => {
+      finish(audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA);
+    }, 15000);
+    audio.addEventListener(eventName, onReady);
+    audio.addEventListener("loadeddata", onReady);
+    audio.addEventListener("error", onError);
+  });
+}
+
 /**
- * 线上 CDN 往往不返回 206 / Accept-Ranges，直接拖进度会失败并回到开头。
- * 拉成 blob 后在本地 seek，进度条才能正常用。
+ * 线上静态资源常无 Accept-Ranges：直链播到缓冲耗尽就会中段没声。
+ * 无 Range 时整首拉成 blob，本地播完整文件。
  */
-async function resolvePlayableUrl(src: string): Promise<string> {
+async function resolvePlayableUrl(
+  src: string,
+  generation: number,
+): Promise<string | null> {
   if (matchesLogicalSrc(src) && activeBlobUrl) return activeBlobUrl;
+
+  const hasRange = await probeRangeSupport(src);
+  if (generation !== loadGeneration) return null;
+
+  if (hasRange) {
+    if (activeBlobUrl) {
+      URL.revokeObjectURL(activeBlobUrl);
+      activeBlobUrl = null;
+    }
+    logicalSrc = src;
+    return src;
+  }
 
   const res = await fetch(src);
   if (!res.ok) throw new Error(`Failed to fetch audio: ${res.status}`);
-  const blob = await res.blob();
+
+  const expected = Number(res.headers.get("content-length")) || 0;
+  const buffer = await res.arrayBuffer();
+  if (generation !== loadGeneration) return null;
+
+  if (buffer.byteLength < 2048) {
+    throw new Error("audio too small");
+  }
+  // 有 Content-Length 时校验是否下全；被截断的文件播到一半就会没声
+  if (expected > 0 && buffer.byteLength < expected) {
+    throw new Error(`truncated audio ${buffer.byteLength}/${expected}`);
+  }
 
   if (activeBlobUrl) {
     URL.revokeObjectURL(activeBlobUrl);
     activeBlobUrl = null;
   }
 
-  activeBlobUrl = URL.createObjectURL(blob);
+  activeBlobUrl = URL.createObjectURL(new Blob([buffer], { type: "audio/mpeg" }));
   logicalSrc = src;
   return activeBlobUrl;
 }
@@ -113,30 +194,47 @@ async function applyTrackSource(
   audio: HTMLAudioElement,
   src: string,
   restoreTime = 0,
-) {
+): Promise<boolean> {
   const generation = ++loadGeneration;
-  const playable = await resolvePlayableUrl(src);
-  if (generation !== loadGeneration) return false;
 
+  // 立刻停掉上一首，避免加载期间继续播旧歌
+  audio.pause();
+
+  let playable: string | null = null;
+  try {
+    playable = await resolvePlayableUrl(src, generation);
+  } catch {
+    // 再试一次完整下载；绝不回退成「无 Range 直链」，否则会中段没声
+    if (generation !== loadGeneration) return false;
+    try {
+      playable = await resolvePlayableUrl(src, generation);
+    } catch {
+      return false;
+    }
+  }
+
+  if (!playable || generation !== loadGeneration) return false;
+
+  const usingBlob = playable.startsWith("blob:");
   if (audio.src !== playable) {
     audio.src = playable;
     audio.load();
   }
 
+  const ready = await waitForCanPlay(audio, generation, usingBlob);
+  if (!ready) return false;
+
   if (restoreTime > 0) {
-    const applySaved = () => {
-      if (generation !== loadGeneration) return;
-      const d = audio.duration;
-      audio.currentTime =
-        Number.isFinite(d) && d > 0
-          ? Math.min(restoreTime, Math.max(0, d - 0.25))
-          : restoreTime;
-    };
-    if (audio.readyState >= 1) applySaved();
-    else audio.addEventListener("loadedmetadata", applySaved, { once: true });
+    const d = audio.duration;
+    audio.currentTime =
+      Number.isFinite(d) && d > 0
+        ? Math.min(restoreTime, Math.max(0, d - 0.25))
+        : restoreTime;
+  } else {
+    audio.currentTime = 0;
   }
 
-  return true;
+  return generation === loadGeneration;
 }
 
 function readWantPlay(): boolean {
@@ -337,24 +435,22 @@ function AudioPlayerClient() {
     setIndex(nextIndex);
     writeTrackIndex(nextIndex);
     setReady(false);
+    setPlaying(false);
 
     const shared = getSharedAudio();
+    shared.loop = loopModeRef.current === "one";
+    shared.volume = volumeRef.current;
+    audioRef.current = shared;
+
     const sameSrc = matchesLogicalSrc(track.src);
     if (!sameSrc) {
       setCurrentTime(0);
       setDuration(0);
       writeSavedTime(nextIndex, 0);
-      try {
-        await applyTrackSource(shared, track.src, 0);
-      } catch {
-        // 回退直链（本地开发通常支持 Range）
-        logicalSrc = track.src;
-        shared.src = track.src;
-        shared.load();
-      }
+      const ok = await applyTrackSource(shared, track.src, 0);
+      // 已被更新的切歌请求取代
+      if (!ok || indexRef.current !== nextIndex) return;
     }
-    shared.loop = loopModeRef.current === "one";
-    shared.volume = volumeRef.current;
 
     if (autoPlay) {
       wantPlayRef.current = true;
@@ -366,7 +462,13 @@ function AudioPlayerClient() {
       }
     }
 
-    audioRef.current = shared;
+    if (indexRef.current === nextIndex) {
+      setReady(true);
+      setCurrentTime(shared.currentTime || 0);
+      if (Number.isFinite(shared.duration) && shared.duration > 0) {
+        setDuration(shared.duration);
+      }
+    }
   }, []);
 
   const play = useCallback(async () => {
@@ -519,12 +621,11 @@ function AudioPlayerClient() {
 
       if (!matchesLogicalSrc(track.src) || !audio.src) {
         const saved = readSavedTime(initial);
-        try {
-          await applyTrackSource(audio, track.src, saved);
-        } catch {
-          logicalSrc = track.src;
-          audio.src = track.src;
-          audio.load();
+        const ok = await applyTrackSource(audio, track.src, saved);
+        if (!ok && !cleaned) {
+          // 加载失败时保持静音，避免无 Range 直链播到一半没声
+          setReady(false);
+          return;
         }
       }
 
@@ -583,7 +684,7 @@ function AudioPlayerClient() {
       ? "滑动鼠标开始"
       : ready
         ? "已暂停"
-        : "准备中";
+        : "加载中";
 
   const listMaxHeight = `calc(${Math.min(TRACKS.length, LIST_VISIBLE)} * 2.15rem)`;
   const progressMax = duration > 0 ? duration : 0;

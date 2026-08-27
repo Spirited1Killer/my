@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent } from "react";
 
 type Track = {
   id: string;
@@ -63,10 +63,81 @@ const PLAYING_KEY = "bgm-playing";
 const TRACK_KEY = "bgm-track";
 const LOOP_KEY = "bgm-loop";
 const VOLUME_KEY = "bgm-volume";
+const TIME_KEY = "bgm-time";
 const LIST_VISIBLE = 10;
 const UNLOCK_EVENTS = ["mousemove", "pointerdown"] as const;
 
 type LoopMode = "list" | "one";
+
+/** 跨 React 重挂载复用，避免切页 / Strict Mode / 回前台时从头播 */
+let sharedAudio: HTMLAudioElement | null = null;
+/** 当前逻辑路径（/audio/xxx.mp3），与 blob: URL 区分 */
+let logicalSrc = "";
+let activeBlobUrl: string | null = null;
+let loadGeneration = 0;
+
+function getSharedAudio(): HTMLAudioElement {
+  if (!sharedAudio) {
+    sharedAudio = new Audio();
+    sharedAudio.preload = "auto";
+  }
+  return sharedAudio;
+}
+
+function matchesLogicalSrc(src: string) {
+  return logicalSrc === src;
+}
+
+/**
+ * 线上 CDN 往往不返回 206 / Accept-Ranges，直接拖进度会失败并回到开头。
+ * 拉成 blob 后在本地 seek，进度条才能正常用。
+ */
+async function resolvePlayableUrl(src: string): Promise<string> {
+  if (matchesLogicalSrc(src) && activeBlobUrl) return activeBlobUrl;
+
+  const res = await fetch(src);
+  if (!res.ok) throw new Error(`Failed to fetch audio: ${res.status}`);
+  const blob = await res.blob();
+
+  if (activeBlobUrl) {
+    URL.revokeObjectURL(activeBlobUrl);
+    activeBlobUrl = null;
+  }
+
+  activeBlobUrl = URL.createObjectURL(blob);
+  logicalSrc = src;
+  return activeBlobUrl;
+}
+
+async function applyTrackSource(
+  audio: HTMLAudioElement,
+  src: string,
+  restoreTime = 0,
+) {
+  const generation = ++loadGeneration;
+  const playable = await resolvePlayableUrl(src);
+  if (generation !== loadGeneration) return false;
+
+  if (audio.src !== playable) {
+    audio.src = playable;
+    audio.load();
+  }
+
+  if (restoreTime > 0) {
+    const applySaved = () => {
+      if (generation !== loadGeneration) return;
+      const d = audio.duration;
+      audio.currentTime =
+        Number.isFinite(d) && d > 0
+          ? Math.min(restoreTime, Math.max(0, d - 0.25))
+          : restoreTime;
+    };
+    if (audio.readyState >= 1) applySaved();
+    else audio.addEventListener("loadedmetadata", applySaved, { once: true });
+  }
+
+  return true;
+}
 
 function readWantPlay(): boolean {
   try {
@@ -141,6 +212,30 @@ function writeVolume(value: number) {
   }
 }
 
+function readSavedTime(trackIndex: number): number {
+  try {
+    const raw = sessionStorage.getItem(TIME_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw) as { index?: number; time?: number };
+    if (parsed.index !== trackIndex) return 0;
+    const t = Number(parsed.time);
+    return Number.isFinite(t) && t > 0 ? t : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeSavedTime(trackIndex: number, time: number) {
+  try {
+    sessionStorage.setItem(
+      TIME_KEY,
+      JSON.stringify({ index: trackIndex, time }),
+    );
+  } catch {
+    // ignore
+  }
+}
+
 function wrapIndex(index: number) {
   const len = TRACKS.length;
   return ((index % len) + len) % len;
@@ -155,6 +250,21 @@ function formatTime(seconds: number) {
 }
 
 export function AudioPlayer() {
+  // 仅客户端挂载，避免 localStorage 与 SSR 水合不一致
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
+  if (!mounted) {
+    return <div className="audio-player" aria-hidden />;
+  }
+
+  return <AudioPlayerClient />;
+}
+
+function AudioPlayerClient() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const wantPlayRef = useRef(false);
@@ -220,8 +330,6 @@ export function AudioPlayer() {
   }, []);
 
   const loadAndMaybePlay = useCallback(async (nextIndex: number, autoPlay: boolean) => {
-    const audio = audioRef.current;
-    if (!audio) return;
     const track = TRACKS[nextIndex];
     if (!track) return;
 
@@ -229,39 +337,48 @@ export function AudioPlayer() {
     setIndex(nextIndex);
     writeTrackIndex(nextIndex);
     setReady(false);
-    setCurrentTime(0);
-    setDuration(0);
 
-    const sameSrc =
-      audio.src.endsWith(track.src) || audio.getAttribute("src") === track.src;
+    const shared = getSharedAudio();
+    const sameSrc = matchesLogicalSrc(track.src);
     if (!sameSrc) {
-      audio.src = track.src;
-      audio.load();
+      setCurrentTime(0);
+      setDuration(0);
+      writeSavedTime(nextIndex, 0);
+      try {
+        await applyTrackSource(shared, track.src, 0);
+      } catch {
+        // 回退直链（本地开发通常支持 Range）
+        logicalSrc = track.src;
+        shared.src = track.src;
+        shared.load();
+      }
     }
-    audio.loop = loopModeRef.current === "one";
-    audio.volume = volumeRef.current;
+    shared.loop = loopModeRef.current === "one";
+    shared.volume = volumeRef.current;
 
     if (autoPlay) {
       wantPlayRef.current = true;
       writeWantPlay(true);
       try {
-        await audio.play();
+        await shared.play();
       } catch {
         // 交给 unlock / 媒体事件
       }
     }
+
+    audioRef.current = shared;
   }, []);
 
   const play = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const shared = getSharedAudio();
     wantPlayRef.current = true;
     writeWantPlay(true);
     try {
-      await audio.play();
+      await shared.play();
     } catch {
       // ignore
     }
+    audioRef.current = shared;
   }, []);
 
   const pause = useCallback(() => {
@@ -303,18 +420,24 @@ export function AudioPlayer() {
     loopModeRef.current = readLoopMode();
     volumeRef.current = readVolume();
 
-    const audio = new Audio(TRACKS[initial].src);
+    const audio = getSharedAudio();
+    audioRef.current = audio;
     audio.loop = loopModeRef.current === "one";
     audio.volume = volumeRef.current;
-    audio.preload = "auto";
-    audioRef.current = audio;
 
+    const track = TRACKS[initial];
     let cleaned = false;
+    let lastPersistAt = 0;
 
     const syncTime = () => {
       if (!seekingRef.current) setCurrentTime(audio.currentTime || 0);
       const d = audio.duration;
       if (Number.isFinite(d) && d > 0) setDuration(d);
+      const now = Date.now();
+      if (now - lastPersistAt > 1000) {
+        lastPersistAt = now;
+        writeSavedTime(indexRef.current, audio.currentTime || 0);
+      }
     };
 
     const onPlaying = () => {
@@ -330,6 +453,7 @@ export function AudioPlayer() {
     const onTimeUpdate = () => syncTime();
     const onDurationChange = () => syncTime();
     const onEnded = () => {
+      writeSavedTime(indexRef.current, 0);
       if (loopModeRef.current === "one") {
         void audio.play().catch(() => {});
         return;
@@ -363,6 +487,16 @@ export function AudioPlayer() {
       });
     };
 
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!wantPlayRef.current) return;
+      if (!audio.paused) return;
+      void audio.play().then(
+        () => {},
+        () => addUnlockListeners(),
+      );
+    };
+
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("canplay", onCanPlay);
@@ -370,18 +504,54 @@ export function AudioPlayer() {
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("durationchange", onDurationChange);
     audio.addEventListener("ended", onEnded);
+    document.addEventListener("visibilitychange", onVisibility);
 
-    if (wantPlayRef.current) {
-      void audio.play().then(
-        () => {},
-        () => addUnlockListeners(),
-      );
-    }
+    const boot = async () => {
+      if (!track) return;
+
+      // 已在播同一首：只同步 UI
+      if (matchesLogicalSrc(track.src) && !audio.paused) {
+        setPlaying(true);
+        setReady(true);
+        syncTime();
+        return;
+      }
+
+      if (!matchesLogicalSrc(track.src) || !audio.src) {
+        const saved = readSavedTime(initial);
+        try {
+          await applyTrackSource(audio, track.src, saved);
+        } catch {
+          logicalSrc = track.src;
+          audio.src = track.src;
+          audio.load();
+        }
+      }
+
+      if (cleaned) return;
+
+      if (!audio.paused) {
+        setPlaying(true);
+        setReady(true);
+        syncTime();
+      } else if (wantPlayRef.current) {
+        void audio.play().then(
+          () => {},
+          () => addUnlockListeners(),
+        );
+      } else {
+        syncTime();
+        if (audio.readyState >= 2) setReady(true);
+      }
+    };
+
+    void boot();
 
     return () => {
       cleaned = true;
       removeUnlockListeners(unlock);
-      audio.pause();
+      document.removeEventListener("visibilitychange", onVisibility);
+      writeSavedTime(indexRef.current, audio.currentTime || 0);
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("canplay", onCanPlay);
@@ -389,7 +559,6 @@ export function AudioPlayer() {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("durationchange", onDurationChange);
       audio.removeEventListener("ended", onEnded);
-      audioRef.current = null;
     };
   }, [loadAndMaybePlay]);
 

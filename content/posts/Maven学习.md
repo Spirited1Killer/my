@@ -41,6 +41,8 @@ RELEASE：功能趋于稳定、当前更新停止，可以用于发型的版本
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>6.1.4</version>
+          	<--->依赖范围</--->
+          	<scope>test</scope>
         </dependency>
     </dependencies>
 ```
@@ -92,6 +94,29 @@ install：安装项目到本地仓库
 ==在同一套生命周期中 运行后面的阶段时 前面的阶段都会运行==
 
 ==执行生命周期可以右侧maven面板双击 或者命令行 mvn +生命周期==
+
+### 5.依赖范围
+
+```xml
+<dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>6.1.4</version>
+          	<--->依赖范围</--->
+          	<scope>test</scope>
+        </dependency>
+    </dependencies>
+```
+
+|    scope值    | 主程序 | 测试程序 | 打包(运行) |    范例     |
+| :-----------: | :----: | :------: | :--------: | :---------: |
+| compile(默认) |   y    |    y     |     y      |    log4j    |
+|     test      |   -    |    y     |     -      |    junit    |
+|   provided    |   y    |    y     |     -      | servlet-api |
+|    runtime    |   -    |    y     |     y      |  jdbc驱动   |
+
+
 
 ## 三、单元测试
 

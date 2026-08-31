@@ -669,6 +669,23 @@ img {
   background: var(--pine-deep);
 }
 
+.btn--ghost-dark {
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+
+.btn--ghost-dark:hover {
+  border-color: color-mix(in oklab, var(--ink) 28%, transparent);
+  background: color-mix(in oklab, var(--ink) 4%, transparent);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ——— Latest posts on home ——— */
 .home-latest {
   padding-top: 5rem;
@@ -1133,6 +1150,12 @@ img {
   }
 }
 
+@media (min-width: 1100px) {
+  .home-game__list {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
 .home-game__card h3 {
   font-family: var(--font-display);
   font-size: 1.45rem;
@@ -1471,5 +1494,358 @@ img {
 
   .niulai-hud__item:nth-child(4) {
     display: none;
+  }
+}
+
+/* ——— Smoke break ——— */
+.smoke-page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+.smoke-page__bar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.smoke-page__heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.smoke-page__links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.smoke-page__back {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--pine);
+  white-space: nowrap;
+}
+
+.smoke {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 960px) {
+  .smoke {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.75rem;
+    align-items: stretch;
+  }
+}
+
+.smoke__stage {
+  position: relative;
+  min-height: 340px;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 18%, #f6efe4 0%, transparent 55%),
+    linear-gradient(165deg, #c9d2c8 0%, #a8b5ac 42%, #6f7f76 100%);
+}
+
+.smoke__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 78%, color-mix(in oklab, #1a2420 18%, transparent), transparent 42%),
+    radial-gradient(circle at 82% 30%, color-mix(in oklab, #f7f1e3 35%, transparent), transparent 40%);
+  pointer-events: none;
+}
+
+.smoke__tray {
+  position: absolute;
+  bottom: 1.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(240px, 62%);
+  height: 34px;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 30%, #9a8168 0%, transparent 55%),
+    linear-gradient(180deg, #7a6450 0%, #4a3a2e 48%, #2e241c 100%);
+  box-shadow:
+    inset 0 5px 10px color-mix(in oklab, #1a1c1b 42%, transparent),
+    inset 0 -2px 0 color-mix(in oklab, #c4a888 18%, transparent),
+    0 10px 22px color-mix(in oklab, #1a1c1b 20%, transparent);
+  overflow: hidden;
+}
+
+.smoke__tray-well {
+  position: absolute;
+  inset: 5px 14px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklab, #1a120e 55%, transparent);
+  box-shadow: inset 0 2px 4px color-mix(in oklab, #000 35%, transparent);
+}
+
+.smoke__tray-clump {
+  position: absolute;
+  display: block;
+  border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%;
+  background:
+    radial-gradient(circle at 30% 35%, #e4ddd2 0%, #a8a094 42%, #6e6860 100%);
+  box-shadow: 0 1px 1px color-mix(in oklab, #1a1c1b 25%, transparent);
+  opacity: 0.92;
+}
+
+.smoke__fall {
+  position: absolute;
+  top: 42%;
+  z-index: 4;
+  display: block;
+  border-radius: 35% 65% 50% 50%;
+  background:
+    radial-gradient(circle at 40% 40%, #ddd6cb 0%, #8f8880 70%, #5c574f 100%);
+  box-shadow: 0 0 1px color-mix(in oklab, #1a1c1b 30%, transparent);
+  animation: ash-fall 0.7s cubic-bezier(0.33, 0.02, 0.7, 0.85) forwards;
+  pointer-events: none;
+}
+
+@keyframes ash-fall {
+  0% {
+    opacity: 0.95;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0.15;
+    transform: translate(var(--fall-x, 12px), 118px) rotate(var(--fall-spin, 120deg)) scale(0.55);
+  }
+}
+
+
+.smoke__hint {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: color-mix(in oklab, #1a1c1b 62%, transparent);
+  letter-spacing: 0.04em;
+}
+
+.smoke__cig {
+  position: relative;
+  z-index: 2;
+  width: min(420px, 92%);
+  height: 150px;
+  transform: rotate(-6deg);
+  transform-origin: 22% 50%;
+  transition: transform 0.28s ease;
+}
+
+.smoke__cig.is-puffing {
+  transform: rotate(-6deg) translateX(-4px);
+}
+
+.smoke__cig.is-flicking {
+  animation: cig-flick 0.55s cubic-bezier(0.22, 0.8, 0.32, 1);
+}
+
+.smoke__cig.is-done {
+  filter: grayscale(0.2) saturate(0.85);
+}
+
+@keyframes cig-flick {
+  0% { transform: rotate(-6deg); }
+  28% { transform: rotate(15deg) translateY(6px); }
+  55% { transform: rotate(-12deg) translateY(1px); }
+  78% { transform: rotate(-3deg); }
+  100% { transform: rotate(-6deg); }
+}
+
+.smoke__svg {
+  display: block;
+  overflow: visible;
+}
+
+.smoke__ember-g {
+  animation: ember-breathe 1.4s ease-in-out infinite;
+}
+
+.smoke__ember-g.is-puffing {
+  animation: ember-draw 0.35s ease-in-out infinite;
+}
+
+@keyframes ember-breathe {
+  0%, 100% { opacity: 0.88; }
+  50% { opacity: 1; }
+}
+
+@keyframes ember-draw {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.92; }
+}
+
+.smoke__svg-plume .p1,
+.smoke__svg-plume .p2,
+.smoke__svg-plume .p3,
+.smoke__svg-plume .p4 {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.smoke__svg-plume .p1 { animation: svg-plume 3.2s ease-out infinite; }
+.smoke__svg-plume .p2 { animation: svg-plume 3.2s ease-out 0.55s infinite; }
+.smoke__svg-plume .p3 { animation: svg-plume 3.2s ease-out 1.1s infinite; }
+.smoke__svg-plume .p4 { animation: svg-plume 3.2s ease-out 1.7s infinite; }
+
+.smoke__svg-plume.is-puffing .p1,
+.smoke__svg-plume.is-puffing .p2,
+.smoke__svg-plume.is-puffing .p3,
+.smoke__svg-plume.is-puffing .p4 {
+  animation-duration: 1.2s;
+}
+
+.smoke__svg-plume.is-done {
+  opacity: 0.2;
+}
+
+@keyframes svg-plume {
+  0% {
+    opacity: 0;
+    transform: translate(0, 8px) scale(0.45);
+  }
+  20% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(16px, -56px) scale(1.55);
+  }
+}
+
+.smoke__panel {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+  padding: 1.35rem 1.4rem 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: color-mix(in oklab, var(--mist) 70%, transparent);
+}
+
+.smoke__eyebrow {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.smoke__title {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  letter-spacing: -0.02em;
+}
+
+.smoke__desc {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  line-height: 1.7;
+}
+
+.smoke__brands {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+@media (min-width: 520px) {
+  .smoke__brands {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.smoke__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: left;
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.3rem;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, #fff 55%, transparent);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.smoke__brand:hover {
+  border-color: color-mix(in oklab, var(--pine) 35%, transparent);
+  transform: translateY(-1px);
+}
+
+.smoke__brand.is-active {
+  border-color: var(--pine);
+  background: color-mix(in oklab, var(--pine) 8%, #fff);
+}
+
+.smoke__brand-swatch {
+  width: 14px;
+  height: 28px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, #1a1c1b 12%, transparent);
+}
+
+.smoke__brand-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.smoke__brand-text strong {
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.smoke__brand-text em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.smoke__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+@media (max-width: 640px) {
+  .smoke__stage {
+    min-height: 300px;
+  }
+
+  .smoke__cig {
+    width: min(360px, 96%);
+    height: 130px;
+    transform: rotate(-4deg);
+  }
+
+  .smoke__cig.is-puffing {
+    transform: rotate(-4deg) translateX(-3px);
   }
 }

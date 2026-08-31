@@ -10,6 +10,7 @@ const links = [
   { href: "/posts", label: "文章" },
   { href: "/game", label: "游戏一" },
   { href: "/game2", label: "游戏二" },
+  { href: "/smoke", label: "抽根烟" },
   { href: "/about", label: "关于" },
 ];
 

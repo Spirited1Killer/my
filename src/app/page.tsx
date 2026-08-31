@@ -52,7 +52,7 @@ export default function HomePage() {
 
       <section className="section home-game">
         <p className="section__eyebrow">Play</p>
-        <h2 className="section__title">牛来小游戏</h2>
+        <h2 className="section__title">玩一玩</h2>
         <div className="home-game__list">
           <article className="home-game__card">
             <h3>游戏一 · 梦境奔跑</h3>
@@ -66,6 +66,13 @@ export default function HomePage() {
             <p>A/D 移动，自动吐出妈妈攻击墨狼；掉落可加牛数与攻速。</p>
             <Link href="/game2" className="btn btn--pine">
               开始出击
+            </Link>
+          </article>
+          <article className="home-game__card">
+            <h3>抽根烟</h3>
+            <p>选个口味，点燃，抽一口，弹烟灰。歇一会儿再继续。</p>
+            <Link href="/smoke" className="btn btn--pine">
+              去抽一根
             </Link>
           </article>
         </div>

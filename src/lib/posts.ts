@@ -126,10 +126,15 @@ export async function getPostBySlug(slug: string): Promise<Post> {
   const resolved = resolvePostSlug(slug) ?? slug;
   const { fileContents, mtimeMs } = readPostFile(resolved);
   const { content, meta } = parseFrontmatter(resolved, fileContents, mtimeMs);
+  // Typora 等本地编辑器用相对路径 ../images/...；站点从 public/images 提供
+  const webContent = content.replace(
+    /(!\[[^\]]*\]\()(?:\.\.\/)+images\//g,
+    "$1/images/",
+  );
   const processed = await remark()
     .use(remarkGfm)
     .use(html, { sanitize: false })
-    .process(content);
+    .process(webContent);
   const stats = readingTime(content);
 
   return {
